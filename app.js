@@ -35,11 +35,11 @@ app.get('/paises', async (req, res) => {
         if (paises.length > 0) {
             res.json(paises);
         } else {
-            res.status(404).json({ message: 'No se encontraron que hablen este idioma.' });
+            res.status(404).json({ message: 'No se encontraron que hablen este idioma' });
         }
     } catch (error) {
         console.error('Error al obtener los datos de los países:', error);
-        res.status(500).json({ message: 'Error interno del servidor.' });
+        res.status(500).json({ message: 'Error interno del servidor' });
     }
 });
 
@@ -58,10 +58,48 @@ app.get('/paises/:nombre', async (req, res) => {
 
         if (paises.length > 0) {
             res.json(paises);
-        } res.status(404).json({ message: 'País no encontrado.' });
+        } res.status(404).json({ message: 'País no encontrado' });
     } catch (error) {
         console.error('Error al buscar país por su nombre:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
+});
+
+app.post('/paises', async (req, res) => {
+    try {
+        const nuevoPais = req.body;
+
+        if (!nuevoPais || !nuevoPais.pais || !Array.isArray(nuevoPais.idioma) || !nuevoPais.continente) {
+            return res.status(400).json({ message: 'Faltan campos obligatorios o tienen formato incorrecto' });
+        }
+
+        const existePais = await req.db.findOne({ pais: new RegExp(`^${nuevoPais.pais}$`, 'i') });
+        if (existePais) {
+            return res.status(409).json({ message: 'El país ya existe.' }); 
+        }
+
+        const resultado = await req.db.insertOne(nuevoPais);
+        res.status(201).json({ message: 'País agregado exitosamente.', insertedId: resultado.insertedId, country: nuevoPais });
+    } catch (error) {
         res.status(500).json({ message: 'Error interno del servidor.' });
+    }
+});
+
+// Endpoint para borrar un país existente de la colección
+app.delete('/paises/:nombre', async (req, res) => {
+    try {
+        const NombrePais = req.params.nombre;
+
+        const resultado = await req.db.deleteOne({ pais: new RegExp(`^${NombrePais}$`, 'i') });
+
+        if (resultado.deletedCount === 1) {
+            res.json({ message: 'País borrado exitosamente' });
+        } else {
+            res.status(404).json({ message: 'No se encontró el pais para borrarlo' });
+        }
+    } catch (error) {
+        console.error('Error al borrar país:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
     }
 });
 

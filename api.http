@@ -12,14 +12,13 @@ GET http://localhost:3000/paises?idioma=italiano
  
 ### Insertar un nuevo país
 POST http://localhost:3000/paises
-
 Content-Type: application/json
+
 {
   "pais": "Argentina",
   "idioma": ["Español"],
   "continente": "América"
 }
-
  
 ### Borrar un país (ejemplo: Argentina)
 DELETE http://localhost:3000/paises/Argentina
